@@ -1,10 +1,153 @@
 <!doctype html>
 <html>
 <head>
-  <title>HUGE NavExercise</title>
-  <link rel="stylesheet" href="/styles/main.css">
+<title>HUGE NavExercise</title>
+<link rel="stylesheet" href="/styles/main.css">
+
+<script type="text/javascript">
+	var openNavEls = document.getElementsByClassName("openNav");
+
+	function closeNavs() {
+		var openNavEls = document.getElementsByClassName("openNav");
+		for(var i=0;i<openNavEls.length;i++){
+			openNavEls[i].classList.remove('openNav');
+			document.body.classList.remove('shielded');
+		}
+	};
+
+	/* top nav constructor function */
+	function loadNavData() {
+		var xmlhttp = new XMLHttpRequest();
+
+		xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				var resp = xmlhttp.response;
+
+				var items = JSON.parse(resp);
+
+				/* begin html output string */
+				var htmlOutput = '';
+
+				/* loop through items & construct html output string */
+				for (i = 0; i < items.items.length; i++) {
+
+					var subnav = (items.items[i].items.length) ? "subnav" : "";
+
+					htmlOutput += '<li><a class="primary ' + subnav + '" title="' + items.items[i].label + '" href="' + items.items[i].url + '">' + items.items[i].label + '</a>';
+
+					if (items.items[i].items.length) {
+						htmlOutput += '<ul>';
+
+						/* loop through subnav items */
+						for (ii = 0; ii < items.items[i].items.length; ii++) {
+							htmlOutput += '<li><a class="secondary" title="' + items.items[i].items[ii].label + '" href="' + items.items[i].items[ii].url + '">' + items.items[i].items[ii].label + '</a></li>';
+						}
+						htmlOutput += '</ul>';
+					}
+
+					htmlOutput += '</li>';
+				}
+
+				htmlOutput += '<li class="copyright visible-mobile">© 2014 Huge. All Rights Reserved.</li>';
+				/* end html output string */
+
+				/* popualate the top nav element with the html output string */
+				document.getElementById("nav").innerHTML = htmlOutput;
+
+				/* define some variables to bind below */
+				var openNavEls = document.getElementsByClassName("openNav");
+				var primaryNav = document.getElementsByClassName("primary");
+				var subnav = document.getElementsByClassName("subnav");
+				var secondaryNav = document.getElementsByClassName("secondary");
+				var ovrl = document.getElementById("overlay");
+
+				/* bind click function for overlay dismissal */
+				ovrl.onclick = function(){
+					closeNavs();
+				};
+
+				/* bind primary nav click function */
+				for(var i=0;i<primaryNav.length;i++){
+					primaryNav[i].addEventListener('click', function(){
+						if(!this.parentNode.classList.contains('openNav')) {
+							closeNavs();
+						}						
+					}, false);
+				}
+
+				/* bind subnavs click function */
+				for(var i=0;i<subnav.length;i++){
+
+					subnav[i].addEventListener('click', function(event){
+						event.preventDefault();
+						if(this.parentNode.classList.contains('openNav')) {
+							this.parentNode.classList.remove('openNav');
+							document.body.classList.remove('shielded');
+						} else {
+							closeNavs();
+							this.parentNode.classList.add('openNav');
+							document.body.classList.add('shielded');
+						}
+
+						if(openNavEls.length){
+							document.body.classList.add('copy');
+						} else {
+							document.body.classList.remove('copy');
+						}
+					}, false);
+				}
+
+				/* bind secondary nav click function */
+				for(var i=0;i<secondaryNav.length;i++){
+					secondaryNav[i].addEventListener('click', closeNavs, false);
+				}
+			}
+		}
+		xmlhttp.open("GET", "/api/nav.json", true);
+		xmlhttp.send();
+	}
+	
+</script>
 </head>
-<body>
-<h1>Hello.</h1>
+<body onload="loadNavData()">
+	<div id="overlay"></div>
+	
+	<div id="top-nav">
+		<div id="nav-controls">
+			<a title="HUGE" class="logo" href="/"><span></span></a>
+			<a id="menu-toggle" title="Click to expand menu" href="/"><span></span></a>
+		</div>		
+		<ul id="nav"></ul>
+	</div>
+	<div id="viewport">		
+		<div class="mobile-fill"></div>
+		<div id="hero">
+			<img src="images/background-image.jpg" />
+			<h1>Get paid for giving a shit.</h1>
+		</div>
+		<h1 class="visible-mobile">Get paid for giving a shit.</h1>
+		<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam cursus pretium eleifend. Donec dui tortor, condimentum et justo et, condimentum semper massa. Vivamus bibendum et velit ut viverra. In hac habitasse platea dictumst. Pellentesque id metus ac metus pretium commodo a eu tellus. Praesent semper nunc in tortor commodo facilisis. Etiam ac elit in felis vehicula fringilla. Quisque tellus orci, accumsan ut interdum ac, vehicula vel dolor.</p>
+	</div>
+
+	<script type="text/javascript">
+		var toggler = document.getElementById("menu-toggle");
+
+		/* bind click function for menu toggle */
+		toggler.onclick = function(event){
+			event.preventDefault();
+			if(document.body.classList.contains('push')){
+				document.body.classList.remove('push');
+				closeNavs();
+			} else {
+				document.body.classList.add('push');
+			}
+		};
+		
+		/* reset menu when the window resizes */
+		window.onresize = function(event) {
+			document.body.classList.remove('push');
+			closeNavs();
+		};
+	</script>
 </body>
 </html>
